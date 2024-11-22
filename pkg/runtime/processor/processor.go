@@ -129,11 +129,12 @@ type Processor struct {
 	pendingComponentDependents map[string][]componentsapi.Component
 	subErrCh                   chan error
 
-	lock     sync.RWMutex
-	chlock   sync.RWMutex
-	running  atomic.Bool
-	shutdown atomic.Bool
-	closedCh chan struct{}
+	pendingComponentsWaitingLock sync.Mutex
+	lock                         sync.RWMutex
+	chlock                       sync.RWMutex
+	running                      atomic.Bool
+	shutdown                     atomic.Bool
+	closedCh                     chan struct{}
 }
 
 func New(opts Options) *Processor {

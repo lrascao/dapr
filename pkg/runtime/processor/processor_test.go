@@ -654,3 +654,51 @@ func TestReporter(t *testing.T) {
 			}
 		})
 }
+
+func TestProcessorWaitGroupError(t *testing.T) {
+	ctx := context.Background()
+	proc, _ := newTestProc()
+	// spin up the processor
+	go func() {
+		proc.Process(ctx)
+	}()
+
+	comp1 := componentsapi.Component{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "testpubsub1",
+		},
+		Spec: componentsapi.ComponentSpec{
+			Type:         "pubsub.mockPubSub",
+			Version:      "v1",
+			Metadata:     daprt.GetFakeMetadataItems(),
+			InitTimeout:  "2",
+			IgnoreErrors: true,
+		},
+	}
+	comp2 := componentsapi.Component{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "testpubsub2",
+		},
+		Spec: componentsapi.ComponentSpec{
+			Type:         "pubsub.mockPubSub",
+			Version:      "v1",
+			Metadata:     daprt.GetFakeMetadataItems(),
+			InitTimeout:  "2",
+			IgnoreErrors: true,
+		},
+	}
+	time.Sleep(1 * time.Second)
+	for i := 0; i < 10000; i++ {
+		go func() {
+			if proc.AddPendingComponent(ctx, comp1) {
+				proc.WaitForEmptyComponentQueue()
+			}
+		}()
+		go func() {
+			if proc.AddPendingComponent(ctx, comp2) {
+				proc.WaitForEmptyComponentQueue()
+			}
+		}()
+		time.Sleep(1 * time.Millisecond)
+	}
+}

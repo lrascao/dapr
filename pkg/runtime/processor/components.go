@@ -144,7 +144,10 @@ func (p *Processor) AddPendingComponent(ctx context.Context, comp componentsapi.
 		return false
 	}
 
+	p.pendingComponentsWaitingLock.Lock()
+	defer p.pendingComponentsWaitingLock.Unlock()
 	p.pendingComponentsWaiting.Add(1)
+
 	select {
 	case <-ctx.Done():
 		p.pendingComponentsWaiting.Done()
@@ -188,6 +191,8 @@ func (p *Processor) processComponents(ctx context.Context) error {
 
 // WaitForEmptyComponentQueue waits for the component queue to be empty.
 func (p *Processor) WaitForEmptyComponentQueue() {
+	p.pendingComponentsWaitingLock.Lock()
+	defer p.pendingComponentsWaitingLock.Unlock()
 	p.pendingComponentsWaiting.Wait()
 }
 
