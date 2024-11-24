@@ -125,16 +125,15 @@ type Processor struct {
 
 	pendingHTTPEndpoints       chan httpendpointsapi.HTTPEndpoint
 	pendingComponents          chan componentsapi.Component
-	pendingComponentsWaiting   sync.WaitGroup
+	pendingComponentsWaiting   sync.RWMutex
 	pendingComponentDependents map[string][]componentsapi.Component
 	subErrCh                   chan error
 
-	pendingComponentsWaitingLock sync.Mutex
-	lock                         sync.RWMutex
-	chlock                       sync.RWMutex
-	running                      atomic.Bool
-	shutdown                     atomic.Bool
-	closedCh                     chan struct{}
+	lock     sync.RWMutex
+	chlock   sync.RWMutex
+	running  atomic.Bool
+	shutdown atomic.Bool
+	closedCh chan struct{}
 }
 
 func New(opts Options) *Processor {
