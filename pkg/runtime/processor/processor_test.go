@@ -656,13 +656,21 @@ func TestReporter(t *testing.T) {
 }
 
 func TestProcessorWaitGroupError(t *testing.T) {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	errCh := make(chan error)
+	t.Cleanup(func() {
+	  cancel()
+	  select {
+	    case err := <-errCh:
+	      require.NoError(t, err)
+	    case <-time.After(time.Second*5):
+	      require.Fail(t, "timeout waiting for processor to return")
+	      }
+	})
 	proc, _ := newTestProc()
 	// spin up the processor
 	go func() {
-		if err := proc.Process(ctx); err != nil {
-			t.Errorf("error in processor: %s", err)
-		}
+		errCh <- proc.Process(ctx)
 	}()
 
 	comp1 := componentsapi.Component{
