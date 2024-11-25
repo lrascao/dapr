@@ -660,8 +660,9 @@ func TestProcessorWaitGroupError(t *testing.T) {
 	proc, _ := newTestProc()
 	// spin up the processor
 	go func() {
-		err := proc.Process(ctx)
-		require.NoError(t, err)
+		if err := proc.Process(ctx); err != nil {
+			t.Errorf("error in processor: %s", err)
+		}
 	}()
 
 	comp1 := componentsapi.Component{
@@ -689,7 +690,7 @@ func TestProcessorWaitGroupError(t *testing.T) {
 		},
 	}
 
-	for i := 0; i < 10000; i++ {
+	for range 10_000 {
 		go func() {
 			if proc.AddPendingComponent(ctx, comp1) {
 				proc.WaitForEmptyComponentQueue()
