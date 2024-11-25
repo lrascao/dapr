@@ -698,16 +698,21 @@ func TestProcessorWaitGroupError(t *testing.T) {
 		},
 	}
 
+       var wg sync.WaitGroup
+       wg.Add(10_000*2)
 	for range 10_000 {
 		go func() {
 			if proc.AddPendingComponent(ctx, comp1) {
 				proc.WaitForEmptyComponentQueue()
+				wg.Done()
 			}
 		}()
 		go func() {
 			if proc.AddPendingComponent(ctx, comp2) {
 				proc.WaitForEmptyComponentQueue()
+				wg.Done()
 			}
 		}()
 	}
+	wg.Wait()
 }
