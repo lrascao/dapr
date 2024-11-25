@@ -17,6 +17,7 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -659,13 +660,13 @@ func TestProcessorWaitGroupError(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	errCh := make(chan error)
 	t.Cleanup(func() {
-	  cancel()
-	  select {
-	    case err := <-errCh:
-	      require.NoError(t, err)
-	    case <-time.After(time.Second*5):
-	      require.Fail(t, "timeout waiting for processor to return")
-	      }
+		cancel()
+		select {
+		case err := <-errCh:
+			require.NoError(t, err)
+		case <-time.After(time.Second * 5):
+			require.Fail(t, "timeout waiting for processor to return")
+		}
 	})
 	proc, _ := newTestProc()
 	// spin up the processor
@@ -698,8 +699,9 @@ func TestProcessorWaitGroupError(t *testing.T) {
 		},
 	}
 
-       var wg sync.WaitGroup
-       wg.Add(10_000*2)
+	var wg sync.WaitGroup
+	wg.Add(10_000 * 2)
+
 	for range 10_000 {
 		go func() {
 			if proc.AddPendingComponent(ctx, comp1) {
@@ -714,5 +716,6 @@ func TestProcessorWaitGroupError(t *testing.T) {
 			}
 		}()
 	}
+
 	wg.Wait()
 }
