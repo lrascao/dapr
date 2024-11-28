@@ -145,12 +145,13 @@ func (p *Processor) AddPendingComponent(ctx context.Context, comp componentsapi.
 	}
 
 	p.pendingComponentsWaiting.RLock()
-	defer p.pendingComponentsWaiting.RUnlock()
 
 	select {
 	case <-ctx.Done():
+		p.pendingComponentsWaiting.RUnlock()
 		return false
 	case <-p.closedCh:
+		p.pendingComponentsWaiting.RUnlock()
 		return false
 	case p.pendingComponents <- comp:
 		return true
@@ -177,6 +178,7 @@ func (p *Processor) processComponents(ctx context.Context) error {
 
 	for comp := range p.pendingComponents {
 		err := process(comp)
+		p.pendingComponentsWaiting.RUnlock()
 		if err != nil {
 			return err
 		}
