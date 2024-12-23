@@ -20,6 +20,7 @@ import (
 	"k8s.io/client-go/util/homedir"
 
 	"github.com/dapr/dapr/pkg/metrics"
+	"github.com/dapr/dapr/pkg/modes"
 	"github.com/dapr/dapr/pkg/sentry/config"
 	"github.com/dapr/kit/logger"
 )
@@ -43,6 +44,7 @@ type Options struct {
 	Kubeconfig            string
 	Logger                logger.Options
 	Metrics               *metrics.FlagOptions
+	Mode                  string
 
 	RootCAFilename     string
 	IssuerCertFilename string
@@ -81,6 +83,7 @@ func New(origArgs []string) *Options {
 	fs.StringVar(&opts.ListenAddress, "listen-address", "", "The listen address for the sentry server")
 	fs.IntVar(&opts.HealthzPort, "healthz-port", 8080, "The port for the healthz server to listen on")
 	fs.StringVar(&opts.HealthzListenAddress, "healthz-listen-address", "", "The listening address for the healthz server")
+	fs.StringVar(&opts.Mode, "mode", string(modes.KubernetesMode), "Runtime mode for Dapr Sentry")
 
 	if home := homedir.HomeDir(); home != "" {
 		fs.StringVar(&opts.Kubeconfig, "kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
