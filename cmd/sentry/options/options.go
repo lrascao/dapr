@@ -108,4 +108,6 @@ func (o *Options) Validate() error {
 	if o.Mode != string(modes.KubernetesMode) && o.Mode != string(modes.StandaloneMode) {
 		return fmt.Errorf("invalid mode: %s", o.Mode)
 	}
+
+	return nil
 }
