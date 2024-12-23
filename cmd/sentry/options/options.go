@@ -14,6 +14,7 @@ limitations under the License.
 package options
 
 import (
+	"fmt"
 	"path/filepath"
 
 	"github.com/spf13/pflag"
@@ -83,7 +84,7 @@ func New(origArgs []string) *Options {
 	fs.StringVar(&opts.ListenAddress, "listen-address", "", "The listen address for the sentry server")
 	fs.IntVar(&opts.HealthzPort, "healthz-port", 8080, "The port for the healthz server to listen on")
 	fs.StringVar(&opts.HealthzListenAddress, "healthz-listen-address", "", "The listening address for the healthz server")
-	fs.StringVar(&opts.Mode, "mode", string(modes.KubernetesMode), "Runtime mode for Dapr Sentry")
+	fs.StringVar(&opts.Mode, "mode", string(modes.StandaloneMode), "Runtime mode for Dapr Sentry")
 
 	if home := homedir.HomeDir(); home != "" {
 		fs.StringVar(&opts.Kubeconfig, "kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
@@ -101,4 +102,10 @@ func New(origArgs []string) *Options {
 	_ = fs.Parse(args)
 
 	return &opts
+}
+
+func (o *Options) Validate() error {
+	if o.Mode != string(modes.KubernetesMode) && o.Mode != string(modes.StandaloneMode) {
+		return fmt.Errorf("invalid mode: %s", o.Mode)
+	}
 }

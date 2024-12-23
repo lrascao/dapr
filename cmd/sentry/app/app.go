@@ -40,6 +40,10 @@ var log = logger.NewLogger("dapr.sentry")
 func Run() {
 	opts := options.New(os.Args[1:])
 
+	if err := opts.Validate(); err != nil {
+		log.Fatalf("Invalid options: %s", err)
+	}
+
 	// Apply options to all loggers
 	if err := logger.ApplyOptionsToLoggers(&opts.Logger); err != nil {
 		log.Fatal(err)
